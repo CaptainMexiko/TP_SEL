@@ -21,7 +21,12 @@ int testAppel = snprintf(cmd, sizeof("pegrep") - 1 + sizeof(str),"pgrep %s", str
 if (testAppel != 0){
   perror("Erreur de la chaine str ");
 }
-int pid = system(cmd);
+int pid = 0;
+FILE * f = popen(cmd, "r");
+char cmax[MAX_LEN] = {0};
+fgets(cmax, MAX_LEN, f);
+pclose(f);
+pid = atoi(cmax);
 if (pid != 0){
   perror("erreur pid ");
 }
