@@ -3,7 +3,8 @@
 int attach (int pid){
   long erreurAttach1 = ptrace(PTRACE_ATTACH, pid, 0, 0);
   if (erreurAttach1 != 0){
-    perror("PTRACE_ATTACH a l'erreur suivante :");
+    printf("%d\n", pid);
+    perror("PTRACE_ATTACH a l'erreur suivante ");
     return -1;
   }
   return 0;
@@ -18,11 +19,11 @@ char const *str= argv[1];
 char cmd[100];
 int testAppel = snprintf(cmd, sizeof("pegrep") - 1 + sizeof(str),"pgrep %s", str);
 if (testAppel != 0){
-  perror("Erreur de la chaine str : ");
+  perror("Erreur de la chaine str ");
 }
-int pid = system(str);
-if (pid < 1){
-  perror("erreur pid : ");
+int pid = system(cmd);
+if (pid != 0){
+  perror("erreur pid ");
 }
 attach(pid);
   return 0;
