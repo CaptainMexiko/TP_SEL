@@ -18,8 +18,9 @@ int main(int argc, char const *argv[]) {
 char const *str= argv[1];
 char cmd[100];
 int testAppel = snprintf(cmd, sizeof("pegrep") - 1 + sizeof(str),"pgrep %s", str);
-if (testAppel != 0){
+if (testAppel < 0){
   perror("Erreur de la chaine str ");
+  return -1;
 }
 int pid = 0;
 FILE * f = popen(cmd, "r");
@@ -27,8 +28,9 @@ char cmax[MAX_LEN] = {0};
 fgets(cmax, MAX_LEN, f);
 pclose(f);
 pid = atoi(cmax);
-if (pid != 0){
+if (pid == 0){
   perror("erreur pid ");
+  return -1;
 }
 attach(pid);
   return 0;
