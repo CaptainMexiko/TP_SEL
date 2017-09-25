@@ -16,6 +16,9 @@ int main(int argc, char const *argv[]) {
   }
 char *str= "";
 int testAppel = snprintf(str, 500,"pgrep %s",argv[0]);
+char *str= argv[1];
+char cmd[100];
+int testAppel = snprintf(cmd, sizeof("pegrep") - 1 + sizeof(str),"pgrep %s", str);
 if (testAppel != 0){
   perror("Erreur de la chaine str : ");
 }
