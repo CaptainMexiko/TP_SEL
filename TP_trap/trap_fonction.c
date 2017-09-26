@@ -24,9 +24,19 @@ if (testAppel < 0){
 }
 int pid = 0;
 FILE * f = popen(cmd, "r");
+if (f == NULL){
+  perror("Erreur de popen ");
+  return -1;
+}
 char cmax[MAX_LEN] = {0};
-fgets(cmax, MAX_LEN, f);
-pclose(f);
+if(fgets(cmax, MAX_LEN, f) == NULL){
+  perror("Erreur de fgets ");
+  return -1;
+}
+if (pclose(f) == -1){
+  perror("Erreur de pclose ");
+  return -1;
+}
 pid = atoi(cmax);
 if (pid == 0){
   perror("erreur pid ");
