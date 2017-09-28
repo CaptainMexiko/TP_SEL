@@ -24,7 +24,7 @@ if (testAppel < 0){
 }
 
 int errPgrep= system(cmd);
-errPgrep = errPgrep/256;
+errPgrep = WEXITSTATUS(errPgrep);
 if (errPgrep == 1){
   perror("Le processus n'existe pas ");
   return -1;
