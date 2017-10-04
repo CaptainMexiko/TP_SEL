@@ -5,7 +5,7 @@ int attach (int pid){
   if (erreurAttach1 != 0){
     printf("%d\n", pid);
     perror("PTRACE_ATTACH a l'erreur suivante ");
-    return -1; 
+    return -1;
   }
   return 0;
 }
