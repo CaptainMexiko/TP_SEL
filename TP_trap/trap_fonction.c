@@ -1,5 +1,7 @@
 #include "trap_fonction.h"
 
+//Author : Didot Gwendal Le Masle Alexis
+
 int attach (int pid){
   long erreurAttach1 = ptrace(PTRACE_ATTACH, pid, 0, 0);
   if (erreurAttach1 != 0){
