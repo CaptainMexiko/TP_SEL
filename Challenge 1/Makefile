@@ -11,3 +11,4 @@ trap_fonction.o : $(SRC)
 
 clean :
 			rm *.o trap_fonction
+			rm *.txt
