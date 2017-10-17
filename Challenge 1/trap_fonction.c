@@ -27,7 +27,7 @@ int modifMem(int pid, const char * processus, const char * fct){
 	char oct = {0xCC};
 
 	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fct) + sizeof(" > addr.txt"), "nm %s | grep %s > addr.txt", processus, fct) < 0){
-		perror("Erreur de la chaine nm processsu | grep fct > addr.txt");
+		perror("Erreur de la chaine nm processus | grep fct > addr.txt");
 		return -1;
 	}
 
