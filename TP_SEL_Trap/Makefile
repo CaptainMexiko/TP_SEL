@@ -10,4 +10,4 @@ trap_fonction.o : $(SRC)
 									$(CC) $(CFLAGS) -c $<
 
 clean :
-			rm *.o trap_fonction
+			rm *.o trap_fonction *.txt
