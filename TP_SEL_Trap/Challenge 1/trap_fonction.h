@@ -7,3 +7,6 @@
 #include <unistd.h>
 
 #define MAX_LEN   512
+
+int attach(int pid);
+int modifMem(int pid, const * char processus, const * char fct);
