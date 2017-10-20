@@ -24,6 +24,7 @@ int modifMem(int pid, const char * processus, const char * fct){
 	int wr;
 	int errSeek;
 	FILE * adr;
+	FILE * f;
 	char oct = {0xCC};
 
 	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fct) + sizeof(" > addr.txt"), "nm %s | grep %s > addr.txt", processus, fct) < 0){
@@ -46,13 +47,18 @@ int modifMem(int pid, const char * processus, const char * fct){
 	}
 
 
-	re = fread(add, 16, sizeof(char), adr);
+	re = fread(add, sizeof(char), 16, adr);
 	if(re == 0){
 		perror("erreur lecture adresse du fichier addr.txt\n");
 		return -1;
 	}
 
 	addresse = strtol(add, NULL, 16);
+	
+	if(fclose(adr) < 0){
+		perror("Error fermeture addr.txt\n");
+		return -1;
+	}
 
 
 
@@ -63,7 +69,7 @@ int modifMem(int pid, const char * processus, const char * fct){
 	}
 
 
-	FILE * f =  fopen(prg,"w");
+	f =  fopen(prg,"w");
 	if (f == NULL) {
 		perror("Erreur de fopen /mem");
 	}
@@ -81,6 +87,12 @@ int modifMem(int pid, const char * processus, const char * fct){
 	}
 
 	printf("----Succès de la modification mémoire.----\n");
+	
+	if(fclose(f) < 0){
+		perror("Erreur fermeture /proc/pid/mem\n");
+		return -1;
+	}
+	
 	return 0;
 }
 
@@ -115,11 +127,12 @@ int main(int argc, char const *argv[]) {
 		perror("Erreur de fopen ");
 	}
 	char numProc[MAX_LEN];
-	int sizePid = fread(numProc, 5, sizeof(char), f);
+	int sizePid = fread(numProc, sizeof(char), 5, f);
 	if (sizePid == 0) {
 		perror("Erreur de fread ");
 		return -1;
 	}
+	
 	fclose(f);
 	pid = atoi(numProc);
 
