@@ -88,11 +88,12 @@ int modifMem(int pid, const char * processus, const char * fct){
 }
 
 
-int getRegistry(int pid){
+user_regs_struct getRegistry(int pid){
   struct user_regs_struct regs;
   int pgReg = ptrace(PTRACE_GETREGS,pid,0,regs);
   if(pgReg == -1){
     perror("Erreur de récupération des registres avec PTRACE_GETREGS : ")
+    exit(1);
   }
 }
 
