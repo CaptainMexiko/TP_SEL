@@ -10,7 +10,15 @@ int attach(int pid) {
 	return 0;
 }
 
-
+struct user_regs_struct getRegistry(int pid){
+  struct user_regs_struct regs;
+  int pgReg = ptrace(PTRACE_GETREGS,pid,0,&regs);
+  if(pgReg == -1){
+    perror("Erreur de récupération des registres avec PTRACE_GETREGS : ");
+    exit(1);
+  }
+  return regs;
+}
 
 int modifMem(int pid, const char * processus, const char * fct){
 	char prg[MAX_LEN];
@@ -24,7 +32,7 @@ int modifMem(int pid, const char * processus, const char * fct){
 	int errSeek;
 	FILE * adr;
 	char oct = {0xCC};
-  int gRegistre;
+  struct user_regs_struct gRegistre;
 
 	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fct) + sizeof(" > addr.txt"), "nm %s | grep %s > addr.txt", processus, fct) < 0){
 		perror("Erreur de la chaine nm processsu | grep fct > addr.txt");
@@ -80,24 +88,12 @@ int modifMem(int pid, const char * processus, const char * fct){
 		return -1;
 	}
 
+  gRegistre = getRegistry(pid);
+  printf("%lld\n", gRegistre.rip );
+
 	printf("----Succès de l'arrêt de la fonction.----\n");
-
-  gRegistre = getRegistry(pid)
-
 	return 0;
 }
-
-
-user_regs_struct getRegistry(int pid){
-  struct user_regs_struct regs;
-  int pgReg = ptrace(PTRACE_GETREGS,pid,0,regs);
-  if(pgReg == -1){
-    perror("Erreur de récupération des registres avec PTRACE_GETREGS : ")
-    exit(1);
-  }
-}
-
-
 
 
 int main(int argc, char const *argv[]) {
