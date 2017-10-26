@@ -89,7 +89,8 @@ int modifMem(int pid, const char * processus, const char * fct){
 
 
 int getRegistry(int pid){
-  int pgReg = ptrace(PTRACE_GETREGS,pid,0,);
+  struct user_regs_struct reg;
+  int pgReg = ptrace(PTRACE_GETREGS,pid,0,&reg);
 }
 
 

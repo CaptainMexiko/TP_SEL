@@ -5,5 +5,6 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <sys/user>
 
 #define MAX_LEN   512
