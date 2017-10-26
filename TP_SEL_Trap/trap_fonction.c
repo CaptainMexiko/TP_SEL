@@ -3,7 +3,6 @@
 int attach(int pid) {
 	long erreurAttach1 = ptrace(PTRACE_ATTACH, pid, 0, 0);
 	if (erreurAttach1 != 0) {
-		printf("%d\n", pid);
 		perror("PTRACE_ATTACH a l'erreur suivante ");
 		return -1;
 	}
@@ -25,6 +24,7 @@ int modifMem(int pid, const char * processus, const char * fct){
 	int errSeek;
 	FILE * adr;
 	char oct = {0xCC};
+  int gRegistre;
 
 	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fct) + sizeof(" > addr.txt"), "nm %s | grep %s > addr.txt", processus, fct) < 0){
 		perror("Erreur de la chaine nm processsu | grep fct > addr.txt");
@@ -80,10 +80,17 @@ int modifMem(int pid, const char * processus, const char * fct){
 		return -1;
 	}
 
-	printf("----Succès de la modification mémoire.----\n");
+	printf("----Succès de l'arrêt de la fonction.----\n");
+
+  gRegistre = getRegistry(pid)
+
 	return 0;
 }
 
+
+int getRegistry(int pid){
+  int pgReg = ptrace(PTRACE_GETREGS,pid,0,);
+}
 
 
 
