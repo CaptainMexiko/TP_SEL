@@ -2,7 +2,7 @@
 
 int attach(int pid) {
 	long erreurAttach1 = ptrace(PTRACE_ATTACH, pid, 0, 0);
-	if (erreurAttach1 != 0) {
+	if (erreurAttach1 == -1) {
 		perror("PTRACE_ATTACH a l'erreur suivante ");
 		return -1;
 	}
@@ -89,7 +89,9 @@ int modifMem(int pid, const char * processus, const char * fct){
 	}
 
   gRegistre = getRegistry(pid);
-  printf("%lld\n", gRegistre.rip );
+  printf("%lld\n", gRegistre.rax );
+
+  
 
 	printf("----Succès de l'arrêt de la fonction.----\n");
 	return 0;
