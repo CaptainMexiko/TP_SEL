@@ -10,6 +10,7 @@ int attach(int pid) {
 	return 0;
 }
 
+
 struct user_regs_struct getRegistry(int pid){
   struct user_regs_struct regs;
   int pgReg = ptrace(PTRACE_GETREGS,pid,0,&regs);
@@ -91,7 +92,6 @@ int modifMem(int pid, const char * processus, const char * fct){
   gRegistre = getRegistry(pid);
   printf("%lld\n", gRegistre.rax );
 
-  
 
 	printf("----Succès de l'arrêt de la fonction.----\n");
 	return 0;
