@@ -34,7 +34,8 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	int wr;
 	int errSeek;
 	FILE * adr;
-	char oct = {0xCC};
+	FILE * f;
+	char trap = {0xCC};
 	struct user_regs_struct gRegistre;
   int erreurMemAlign;
 
@@ -75,7 +76,7 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	}
 
 
-	FILE * f =  fopen(prg,"w");
+	f =  fopen(prg,"w");
 	if (f == NULL) {
 		perror("Erreur de fopen /mem");
 	}
@@ -86,7 +87,7 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 		return -1;
 	}
 
-  wr = fwrite(&oct,1,1,f);
+  wr = fwrite(&trap,1,1,f);
 	if(wr == 0){
 		perror("Erreur write dans /mem\n");
 		return -1;
