@@ -22,21 +22,6 @@ struct user_regs_struct getRegistry(int pid){
 }
 
 
-  int setMemalign(user_regs_struct gRegistre, size_t size){
-    void * retAdr = 0;
-    int erreurMemAlign;
-    int pagesize = getpagesize();
-
-    erreurMemAlign = posix_memalign(&retAdr, pagesize, size);
-    if (erreurMemAlign != 0){
-      perror("Erreur de posix_memalign() ")
-      return -1;
-    }
-    gRegistre.rdi = &retAdr;
-    gRegistre.rsi = pagesize;
-    gRegistre.rdx = size;
-    return 0;
-  }
 
 int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	char prg[MAX_LEN];
@@ -111,7 +96,7 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	printf("%lld\n", gRegistre.rax );
 
   erreurMemAlign = setMemalign(gRegistre, sizeFct);
-  if(erreurMemAlign < 0){
+  if(erreurMemAlign == -1){
     printf("Erreur de setMemalign");
     return -1;
   }
@@ -157,7 +142,7 @@ int main(int argc, char const *argv[]) {
 	pid = atoi(numProc);
 
 	if (pid == 0) {
-		perror("erreur pid ");
+		perror("Erreur pid ");
 		return -1;
 	}
 	if(attach(pid) == -1){
