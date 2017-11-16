@@ -21,7 +21,24 @@ struct user_regs_struct getRegistry(int pid){
 	return regs;
 }
 
-int modifMem(int pid, const char * processus, const char * fct){
+
+  int setMemalign(user_regs_struct gRegistre, size_t size){
+    void * retAdr = 0;
+    int erreurMemAlign;
+    int pagesize = getpagesize();
+
+    erreurMemAlign = posix_memalign(&retAdr, pagesize, size);
+    if (erreurMemAlign != 0){
+      perror("Erreur de posix_memalign() ")
+      return -1;
+    }
+    gRegistre.rdi = &retAdr;
+    gRegistre.rsi = pagesize;
+    gRegistre.rdx = size;
+    return 0;
+  }
+
+int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	char prg[MAX_LEN];
 	char cmd[MAX_LEN];
 	char add[MAX_LEN];
@@ -34,6 +51,7 @@ int modifMem(int pid, const char * processus, const char * fct){
 	FILE * adr;
 	char oct = {0xCC};
 	struct user_regs_struct gRegistre;
+  int erreurMemAlign;
 
 	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fct) + sizeof(" > addr.txt"), "nm %s | grep %s > addr.txt", processus, fct) < 0){
 		perror("Erreur de la chaine nm processsu | grep fct > addr.txt");
@@ -83,7 +101,7 @@ int modifMem(int pid, const char * processus, const char * fct){
 		return -1;
 	}
 
-	wr = fwrite(&oct,1,1,f);
+  wr = fwrite(&oct,1,1,f);
 	if(wr == 0){
 		perror("Erreur write dans /mem\n");
 		return -1;
@@ -92,6 +110,11 @@ int modifMem(int pid, const char * processus, const char * fct){
 	gRegistre = getRegistry(pid);
 	printf("%lld\n", gRegistre.rax );
 
+  erreurMemAlign = setMemalign(gRegistre, sizeFct);
+  if(erreurMemAlign < 0){
+    printf("Erreur de setMemalign");
+    return -1;
+  }
 
 	printf("----Succès de l'arrêt de la fonction.----\n");
 	return 0;
@@ -141,7 +164,9 @@ int main(int argc, char const *argv[]) {
 		return -1;
 	}
 
-	if(modifMem(pid, argv[1] ,argv[2]) == -1){
+  size_t sizeFct = 0;
+
+	if(modifMem(pid, argv[1] ,argv[2]) == -1, sizeFct){
 		return -1;
 	}
 
