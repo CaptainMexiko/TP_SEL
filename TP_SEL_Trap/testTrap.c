@@ -46,6 +46,11 @@ int c9() {
 	return 0;
 }
 
+int appelMem(){
+  print("test");
+  return 0;
+}
+
 int main(int argc, char const *argv[]) {
 	while (1) {
 		c1();

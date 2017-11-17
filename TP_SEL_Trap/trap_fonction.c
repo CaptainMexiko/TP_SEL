@@ -26,21 +26,28 @@ struct user_regs_struct getRegistry(int pid){
 int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	char prg[MAX_LEN];
 	char cmd[MAX_LEN];
+  char cmdCall[MAX_LEN];
 	char add[MAX_LEN];
+  char addCall[MAX_LEN];
 	long addresse;
+  long addrCall;
 	int testAppel;
 	int errPgrep;
+  int errCall;
 	int re;
+  int reC;
 	int wr;
 	int errSeek;
 	FILE * adr;
+  FILE * adrC;
 	FILE * f;
 	char trap = {0xCC};
+  //char call = {0x9A}; E8
 	struct user_regs_struct gRegistre;
-  int erreurMemAlign;
+  const char * fctCall = "appelMem";
 
 	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fct) + sizeof(" > addr.txt"), "nm %s | grep %s > addr.txt", processus, fct) < 0){
-		perror("Erreur de la chaine nm processsu | grep fct > addr.txt");
+		perror("Erreur de la chaine nm processsus | grep fct > addr.txt");
 		return -1;
 	}
 
@@ -95,6 +102,34 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	gRegistre = getRegistry(pid);
 	printf("%lld\n", gRegistre.rax );
 
+  if(snprintf(cmdCall, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fctCall) + sizeof(" > addrCall.txt"), "nm %s | grep %s > addrCall.txt", processus, fctCall) < 0){
+		perror("Erreur de la chaine nm processsu | grep fct > addr.txt");
+		return -1;
+	}
+
+	errCall = system(cmdCall);
+	errCall = WEXITSTATUS(errCall);
+	if (errCall < 0) {
+		perror("nm n'as pas fonctionné\n");
+		return -1;
+	}
+
+  adrC = fopen("addrCall.txt", "r");
+  if (adrC == NULL) {
+    perror("Erreur de fopen adrC\n");
+    return -1;
+  }
+
+
+  reC = fread(addCall, 16, sizeof(char), adrC);
+  if(reC == 0){
+    perror("erreur lecture adresse du fichier addrCall.txt\n");
+    return -1;
+  }
+
+  addrCall = strtol(addCall, NULL, 16);
+
+  printf("%ld\n", addrCall);
 
 	printf("----Succès de l'arrêt de la fonction.----\n");
 	return 0;
