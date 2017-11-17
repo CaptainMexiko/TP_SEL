@@ -67,7 +67,6 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	addresse = strtol(add, NULL, 16);
 
 
-
 	testAppel = snprintf(prg, sizeof("/proc/") + sizeof(pid) + sizeof("/mem"), "/proc/%d/mem" , pid);
 	if (testAppel < 0) {
 		perror("Erreur de la chaine /proc/pid/mem\n");
@@ -95,11 +94,6 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	gRegistre = getRegistry(pid);
 	printf("%lld\n", gRegistre.rax );
 
-  erreurMemAlign = setMemalign(gRegistre, sizeFct);
-  if(erreurMemAlign == -1){
-    printf("Erreur de setMemalign");
-    return -1;
-  }
 
 	printf("----Succès de l'arrêt de la fonction.----\n");
 	return 0;
@@ -151,7 +145,7 @@ int main(int argc, char const *argv[]) {
 
   size_t sizeFct = 0;
 
-	if(modifMem(pid, argv[1] ,argv[2]) == -1, sizeFct){
+	if(modifMem(pid, argv[1] ,argv[2], sizeFct) == -1){
 		return -1;
 	}
 
