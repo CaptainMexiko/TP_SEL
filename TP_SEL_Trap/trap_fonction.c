@@ -42,15 +42,17 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
   FILE * adrC;
 	FILE * f;
 	char trap = {0xCC};
-  //char call = {0x9A}; E8
+  char call = {0x9A};
+	//0x9A, 0xE8 ou 0xFF ?
 	struct user_regs_struct gRegistre;
   const char * fctCall = "appelMem";
 
-	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fct) + sizeof(" > addr.txt"), "nm %s | grep %s > addr.txt", processus, fct) < 0){
-		perror("Erreur de la chaine nm processsus | grep fct > addr.txt");
+	// On regarde la table des symboles du processus controle
+	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fct) + sizeof(" > addr.txt"),
+	 	 "nm %s | grep %s > addr.txt", processus, fct) < 0){
+		perror("Erreur de la chaine nm processsus | grep fct > addrTrap.txt");
 		return -1;
 	}
-
 
 	errPgrep = system(cmd);
 	errPgrep = WEXITSTATUS(errPgrep);
@@ -59,19 +61,19 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 		return -1;
 	}
 
-	adr = fopen("addr.txt", "r");
+	// On lit l'adresse recuperee dans le fichier addrTrap.txt
+	adr = fopen("addrTrap.txt", "r");
 	if (adr == NULL) {
 		perror("Erreur de fopen adr\n");
 		return -1;
 	}
 
-
 	re = fread(add, 16, sizeof(char), adr);
 	if(re == 0){
-		perror("erreur lecture adresse du fichier addr.txt\n");
+		perror("erreur lecture adresse du fichier addrTrap.txt\n");
 		return -1;
 	}
-
+	// On convertit les 16 charactere de la chaine correspondant à l'adresse hexadecimale en Long
 	addresse = strtol(add, NULL, 16);
 
 
@@ -81,29 +83,34 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 		return -1;
 	}
 
-
+	// On ouvre le fichier mem du processus attache
 	f =  fopen(prg,"w");
 	if (f == NULL) {
 		perror("Erreur de fopen /mem");
 	}
-
+	// On se place a l'adresse de la fonction a modifier
 	errSeek = fseek(f, addresse, SEEK_SET);
 	if(errSeek < 0){
 		perror("Erreur fseek\n");
 		return -1;
 	}
 
+	// On ecrit un trap a l'adresse de la fonction pour l'arreter.
   wr = fwrite(&trap,1,1,f);
 	if(wr == 0){
 		perror("Erreur write dans /mem\n");
 		return -1;
 	}
 
+	// On recupere les registres du processus attache
 	gRegistre = getRegistry(pid);
-	printf("%lld\n", gRegistre.rax );
+	printf("%lld\n", gRegistre.rax);
 
-  if(snprintf(cmdCall, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fctCall) + sizeof(" > addrCall.txt"), "nm %s | grep %s > addrCall.txt", processus, fctCall) < 0){
-		perror("Erreur de la chaine nm processsu | grep fct > addr.txt");
+	// On recupere l'adresse hexadecimale de la fonction que l'on veut forcer a executer a la place
+	// Pour l'instant une fonction que l'on utilise pas dans le programme principale puis plus tard posix_memalign
+  if(snprintf(cmdCall, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fctCall) + sizeof(" > addrCall.txt"),
+	 	 "nm %s | grep %s > addrCall.txt", processus, fctCall) < 0){
+		perror("Erreur de la chaine nm processus | grep fctCall > addrCall.txt");
 		return -1;
 	}
 
@@ -130,6 +137,18 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
   addrCall = strtol(addCall, NULL, 16);
 
   printf("%ld\n", addrCall);
+
+	if(adr.close() == 0){
+		perror("Erreur fermeture adr");
+	}
+
+	if(adrC.close() == 0){
+		perror("Erreur fermeture adrC");
+	}
+
+	if(f.close() == 0){
+		perror("Erreur fermeture f");
+	}
 
 	printf("----Succès de l'arrêt de la fonction.----\n");
 	return 0;
