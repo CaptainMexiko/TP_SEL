@@ -41,8 +41,9 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	FILE * adr;
   FILE * adrC;
 	FILE * f;
-	char trap = {0xCC};
-  char call = {0x9A};
+	unsigned int trap = 0xCC;
+  unsigned int call = 0xE8;
+	char callHex[MAX_LEN];
 	//0x9A, 0xE8 ou 0xFF ?
 	struct user_regs_struct gRegistre;
   const char * fctCall = "appelMem";
@@ -96,11 +97,11 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	}
 
 	// On ecrit un trap a l'adresse de la fonction pour l'arreter.
-  wr = fwrite(&trap,1,1,f);
-	if(wr == 0){
-		perror("Erreur write dans /mem\n");
-		return -1;
-	}
+  // wr = fwrite(&trap,1,1,f);
+	// if(wr == 0){
+	// 	perror("Erreur write dans /mem\n");
+	// 	return -1;
+	// }
 
 	// On recupere les registres du processus attache
 	gRegistre = getRegistry(pid);
@@ -110,7 +111,7 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	// Pour l'instant une fonction que l'on utilise pas dans le programme principale puis plus tard posix_memalign
   if(snprintf(cmdCall, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fctCall) + sizeof(" > addrCall.txt"),
 	 	 "nm %s | grep %s > addrCall.txt", processus, fctCall) < 0){
-		perror("Erreur de la chaine nm processus | grep fctCall > addrCall.txt");
+		perror("Erreur de la chaine nm processus | grep fctCall > addrCall.txt \n");
 		return -1;
 	}
 
@@ -138,15 +139,24 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 
   printf("%ld\n", addrCall);
 
-	if(adr.close() == 0){
+	if(snprintf(callHex, sizeof(call) + sizeof(adrCall) + 1 , "%s%s", call, addrCall) < 0){
+		perror("Erreu de la chaine callHex \n");
+	}
+	wr = fwrite(&callHex,1,sizeof(callHex),f);
+	if(wr == 0){
+		perror("Erreur write call dans /mem\n");
+		return -1;
+	}
+
+	if(fclose(adr) == 0){
 		perror("Erreur fermeture adr");
 	}
 
-	if(adrC.close() == 0){
+	if(fclose(adrC) == 0){
 		perror("Erreur fermeture adrC");
 	}
 
-	if(f.close() == 0){
+	if(fclose(f) == 0){
 		perror("Erreur fermeture f");
 	}
 
