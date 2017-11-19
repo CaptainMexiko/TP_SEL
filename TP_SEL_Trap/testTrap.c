@@ -47,7 +47,7 @@ int c9() {
 }
 
 int appelMem(){
-  print("test");
+  printf("test");
   return 0;
 }
 

@@ -15,7 +15,7 @@ struct user_regs_struct getRegistry(int pid){
 	struct user_regs_struct regs;
 	int pgReg = ptrace(PTRACE_GETREGS,pid,0,&regs);
 	if(pgReg == -1){
-		perror("Erreur de récupération des registres avec PTRACE_GETREGS : ");
+		perror("Erreur de récupération des registres avec PTRACE_GETREGS : \n");
 		exit(1);
 	}
 	return regs;
@@ -41,17 +41,17 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	FILE * adr;
   FILE * adrC;
 	FILE * f;
-	unsigned int trap = 0xCC;
-  unsigned int call = 0xE8;
-	char callHex[MAX_LEN];
-	//0x9A, 0xE8 ou 0xFF ?
+	// unsigned int trap = 0xCC;
+  unsigned int call = 0xFF;
+	// 0x9A, 0xE8 ou 0xFF ?
 	struct user_regs_struct gRegistre;
+	char callHex[8];
   const char * fctCall = "appelMem";
 
 	// On regarde la table des symboles du processus controle
-	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fct) + sizeof(" > addr.txt"),
-	 	 "nm %s | grep %s > addr.txt", processus, fct) < 0){
-		perror("Erreur de la chaine nm processsus | grep fct > addrTrap.txt");
+	if(snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep \" " ) + sizeof(fct) + sizeof("\" > addrTrap.txt"),
+	 	 "nm %s | grep \" %s\" > addrTrap.txt", processus, fct) < 0){
+		perror("Erreur de la chaine nm processsus | grep \" fct\" > addrTrap.txt");
 		return -1;
 	}
 
@@ -129,7 +129,7 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
   }
 
 
-  reC = fread(addCall, 16, sizeof(char), adrC);
+  reC = fread(addCall, sizeof(char), 16, adrC);
   if(reC == 0){
     perror("erreur lecture adresse du fichier addrCall.txt\n");
     return -1;
@@ -137,27 +137,32 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 
   addrCall = strtol(addCall, NULL, 16);
 
-  printf("%ld\n", addrCall);
+  printf("Adresse Hexa appelMem: %lX\n", addrCall);
 
-	if(snprintf(callHex, sizeof(call) + sizeof(adrCall) + 1 , "%s%s", call, addrCall) < 0){
-		perror("Erreu de la chaine callHex \n");
+	// Creation de la ligne "call posix_memalign"
+	if(snprintf(callHex, sizeof(callHex) + 1 , "%X%lX", call, addrCall) < 0){
+		perror("Erreur creation de la chaine callHex \n");
 	}
+	printf("Appel complet: %s\n", callHex);
 	wr = fwrite(&callHex,1,sizeof(callHex),f);
 	if(wr == 0){
 		perror("Erreur write call dans /mem\n");
 		return -1;
 	}
 
-	if(fclose(adr) == 0){
+	if(fclose(adr) != 0){
 		perror("Erreur fermeture adr");
+		return -1;
 	}
 
-	if(fclose(adrC) == 0){
+	if(fclose(adrC) != 0){
 		perror("Erreur fermeture adrC");
+		return -1;
 	}
 
-	if(fclose(f) == 0){
+	if(fclose(f) != 0){
 		perror("Erreur fermeture f");
+		return -1;
 	}
 
 	printf("----Succès de l'arrêt de la fonction.----\n");

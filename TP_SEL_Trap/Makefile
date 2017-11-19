@@ -10,4 +10,4 @@ trap_fonction.o : $(SRC)
 									$(CC) $(CFLAGS) -c $<
 
 clean :
-			rm *.o trap_fonction *.txt
+			rm *.o trap_fonction proc.txt addrCall.txt addrTrap.txt
