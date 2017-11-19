@@ -41,7 +41,7 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	FILE * adr;
   FILE * adrC;
 	FILE * f;
-	// unsigned int trap = 0xCC;
+	unsigned int trap = 0xCC;
   unsigned int call = 0xFF;
 	// 0x9A, 0xE8 ou 0xFF ?
 	struct user_regs_struct gRegistre;
@@ -77,7 +77,6 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 	// On convertit les 16 charactere de la chaine correspondant à l'adresse hexadecimale en Long
 	addresse = strtol(add, NULL, 16);
 
-
 	testAppel = snprintf(prg, sizeof("/proc/") + sizeof(pid) + sizeof("/mem"), "/proc/%d/mem" , pid);
 	if (testAppel < 0) {
 		perror("Erreur de la chaine /proc/pid/mem\n");
@@ -96,22 +95,15 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 		return -1;
 	}
 
-	// On ecrit un trap a l'adresse de la fonction pour l'arreter.
-  // wr = fwrite(&trap,1,1,f);
-	// if(wr == 0){
-	// 	perror("Erreur write dans /mem\n");
-	// 	return -1;
-	// }
-
 	// On recupere les registres du processus attache
 	gRegistre = getRegistry(pid);
-	printf("%lld\n", gRegistre.rax);
+	printf("rax = %llX\n", gRegistre.rax);
 
 	// On recupere l'adresse hexadecimale de la fonction que l'on veut forcer a executer a la place
 	// Pour l'instant une fonction que l'on utilise pas dans le programme principale puis plus tard posix_memalign
-  if(snprintf(cmdCall, sizeof("nm ") + sizeof(processus) + sizeof(" | grep ") + sizeof(fctCall) + sizeof(" > addrCall.txt"),
-	 	 "nm %s | grep %s > addrCall.txt", processus, fctCall) < 0){
-		perror("Erreur de la chaine nm processus | grep fctCall > addrCall.txt \n");
+  if(snprintf(cmdCall, sizeof("nm ") + sizeof(processus) + sizeof(" | grep \" ") + sizeof(fctCall) + sizeof("\" > addrCall.txt"),
+	 	 "nm %s | grep \" %s\" > addrCall.txt", processus, fctCall) < 0){
+		perror("Erreur de la chaine nm processus | grep \" fctCall\" > addrCall.txt \n");
 		return -1;
 	}
 
@@ -137,10 +129,12 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 
   addrCall = strtol(addCall, NULL, 16);
 
-  printf("Adresse Hexa appelMem: %lX\n", addrCall);
+  gRegistre.rax = addrCall;
+
+  printf("appelMem: %lX\n", addrCall);
 
 	// Creation de la ligne "call posix_memalign"
-	if(snprintf(callHex, sizeof(callHex) + 1 , "%X%lX", call, addrCall) < 0){
+	if(snprintf(callHex, sizeof(callHex) + 1 , "%X%llX", call, gRegistre.rax) < 0){
 		perror("Erreur creation de la chaine callHex \n");
 	}
 	printf("Appel complet: %s\n", callHex);
@@ -149,6 +143,14 @@ int modifMem(int pid, const char * processus, const char * fct, size_t sizeFct){
 		perror("Erreur write call dans /mem\n");
 		return -1;
 	}
+
+	// On ecrit un trap a l'adresse de la fonction pour l'arreter.
+	wr = fwrite(&trap,1,1,f);
+	if(wr == 0){
+		perror("Erreur write dans /mem\n");
+		return -1;
+	}
+
 
 	if(fclose(adr) != 0){
 		perror("Erreur fermeture adr");

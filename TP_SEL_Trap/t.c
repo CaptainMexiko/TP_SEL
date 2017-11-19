@@ -5,7 +5,7 @@ int main(int argc, char const *argv[]) {
   FILE *fp;
   fp=fopen("try.txt","w");
   // fp=fopen("try.txt","r");
-  unsigned int c = 0x9a;
+  unsigned int c = 0xff;
   unsigned int t = 0xefa49b4d;
   // long l;
   // char addCall[512];
