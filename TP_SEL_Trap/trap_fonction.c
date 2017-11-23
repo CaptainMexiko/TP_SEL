@@ -40,7 +40,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   FILE *f;
 
   struct user_regs_struct gRegistre;
-  char callHex[3] = {OxFF, OxD0, 0xCC};
+  char callHex[3] = {0xFF, 0xD0, 0xCC};
   const char *fctCall = "appelMem";
 
   // On regarde la table des symboles du processus controle
@@ -102,7 +102,6 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   // On recupere les registres du processus attache
   gRegistre = getRegistry(pid);
-  printf("rax = %llX\n", gRegistre.rax);
 
   // On recupere l'adresse hexadecimale de la fonction que l'on veut forcer a
   // executer a la place Pour l'instant une fonction que l'on utilise pas dans
@@ -141,32 +140,25 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   addrCall = strtol(addCall, NULL, 16);
 
   gRegistre.rax = addrCall;
+  printf("raxSet = %llX\n", gRegistre.rax);
   gRegistre.rip = addresse;
 
   printf("appelMem: %lX\n", addrCall);
 
   // Creation de la ligne "call posix_memalign"
-  if (snprintf(callHex, sizeof(call) + sizeof(callHex) + 1, "%X%llX", call,
-               gRegistre.rax) < 0) {
-    perror("Erreur creation de la chaine callHex \n");
-    return -1;
-  }
+//  if (snprintf(callHex, sizeof(callHex) + 1, "%llX", gRegistre.rax) < 0) {
+  //  perror("Erreur creation de la chaine callHex \n");
+   // return -1;
+  //}
 
   printf("Appel complet: %s\n", callHex);
-  wr = fwrite(&callHex, 1, sizeof(callHex), f);
+  wr = fwrite(callHex, 1, sizeof(callHex), f);
 
   if (wr == 0) {
     perror("Erreur write call dans /mem\n");
     return -1;
   }
 
-  // On ecrit un trap a l'adresse de la fonction pour l'arreter.
-  wr = fwrite(&trap, 1, 1, f);
-
-  if (wr == 0) {
-    perror("Erreur write dans /mem\n");
-    return -1;
-  }
 
   if (fclose(adr) != 0) {
     perror("Erreur fermeture adr");
