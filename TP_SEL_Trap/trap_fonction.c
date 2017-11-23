@@ -69,6 +69,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   }
 
   re = fread(add, sizeof(char), 16, adr);
+  add[16] = 0;
 
   if (re == 0) {
     perror("erreur lecture adresse du fichier addrTrap.txt\n");
@@ -126,6 +127,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   }
 
   reC = fread(addCall, sizeof(char), 16, adrC);
+  addCall[16] = 0;
 
   if (reC == 0) {
     perror("erreur lecture adresse du fichier addrCall.txt\n");
