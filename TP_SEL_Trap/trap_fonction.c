@@ -106,12 +106,10 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   // On recupere l'adresse hexadecimale de la fonction que l'on veut forcer a
   // executer a la place Pour l'instant une fonction que l'on utilise pas dans
   // le programme principale puis plus tard posix_memalign
-  if (snprintf(cmdCall,
-               sizeof("nm ") + sizeof(processus) + sizeof(" | grep \" ") +
-                   sizeof(fctCall) + sizeof("\" > addrCall.txt"),
-               "nm %s | grep \" %s\" > addrCall.txt", processus, fctCall) < 0) {
-    perror("Erreur de la chaine nm processus | grep \" fctCall\" > "
-           "addrCall.txt \n");
+  if (snprintf(cmdCall, sizeof("nm ") + sizeof(processus) + sizeof(" | grep \" ") + sizeof(fctCall) + sizeof("\" > addrCall.txt"),
+  			"nm %s | grep \" %s\" > addrCall.txt", processus, fctCall) < 0) {
+  			
+    perror("Erreur de la chaine nm processus | grep \" fctCall\" > addrCall.txt \n");
     return -1;
   }
 
@@ -144,15 +142,11 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   gRegistre.rip = addresse;
 
   printf("appelMem: %lX\n", addrCall);
-
-  // Creation de la ligne "call posix_memalign"
-//  if (snprintf(callHex, sizeof(callHex) + 1, "%llX", gRegistre.rax) < 0) {
-  //  perror("Erreur creation de la chaine callHex \n");
-   // return -1;
-  //}
-
-  printf("Appel complet: %s\n", callHex);
-  wr = fwrite(callHex, 1, sizeof(callHex), f);
+  
+	for(int i = 0; i < 3; i++){
+	  printf("Bytes: %08x\n", callHex[i]);
+	}
+  wr = fwrite(callHex, sizeof(callHex), 1, f);
 
   if (wr == 0) {
     perror("Erreur write call dans /mem\n");
