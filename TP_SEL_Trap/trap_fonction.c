@@ -56,6 +56,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   errPgrep = system(cmd);
   errPgrep = WEXITSTATUS(errPgrep);
+
   if (errPgrep < 0) {
     perror("nm n'as pas fonctionné\n");
     return -1;
@@ -63,12 +64,14 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   // On lit l'adresse recuperee dans le fichier addrTrap.txt
   adr = fopen("addrTrap.txt", "r");
+
   if (adr == NULL) {
     perror("Erreur de fopen adr\n");
     return -1;
   }
 
   re = fread(add, 16, sizeof(char), adr);
+
   if (re == 0) {
     perror("erreur lecture adresse du fichier addrTrap.txt\n");
     return -1;
@@ -79,6 +82,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   testAppel = snprintf(prg, sizeof("/proc/") + sizeof(pid) + sizeof("/mem"),
                        "/proc/%d/mem", pid);
+
   if (testAppel < 0) {
     perror("Erreur de la chaine /proc/pid/mem\n");
     return -1;
@@ -86,11 +90,13 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   // On ouvre le fichier mem du processus attache
   f = fopen(prg, "w");
+
   if (f == NULL) {
     perror("Erreur de fopen /mem");
   }
   // On se place a l'adresse de la fonction a modifier
   errSeek = fseek(f, addresse, SEEK_SET);
+
   if (errSeek < 0) {
     perror("Erreur fseek\n");
     return -1;
@@ -114,18 +120,21 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   errCall = system(cmdCall);
   errCall = WEXITSTATUS(errCall);
+
   if (errCall < 0) {
     perror("nm n'as pas fonctionné\n");
     return -1;
   }
 
   adrC = fopen("addrCall.txt", "r");
+
   if (adrC == NULL) {
     perror("Erreur de fopen adrC\n");
     return -1;
   }
 
   reC = fread(addCall, sizeof(char), 16, adrC);
+
   if (reC == 0) {
     perror("erreur lecture adresse du fichier addrCall.txt\n");
     return -1;
@@ -141,90 +150,100 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   if (snprintf(callHex, sizeof(callHex) + 1, "%X%llX", call, gRegistre.rax) <
       0) {
     perror("Erreur creation de la chaine callHex \n");
-  }
-  printf("Appel complet: %s\n", callHex);
-  wr = fwrite(&callHex, 1, sizeof(callHex), f);
-  if (wr == 0) {
-    perror("Erreur write call dans /mem\n");
-    return -1;
+
+    printf("Appel complet: %s\n", callHex);
+    wr = fwrite(&callHex, 1, sizeof(callHex), f);
+
+    if (wr == 0) {
+      perror("Erreur write call dans /mem\n");
+      return -1;
+    }
+
+    // On ecrit un trap a l'adresse de la fonction pour l'arreter.
+    wr = fwrite(&trap, 1, 1, f);
+
+    if (wr == 0) {
+      perror("Erreur write dans /mem\n");
+      return -1;
+    }
+
+    if (fclose(adr) != 0) {
+      perror("Erreur fermeture adr");
+      return -1;
+    }
+
+    if (fclose(adrC) != 0) {
+      perror("Erreur fermeture adrC");
+      return -1;
+    }
+
+    if (fclose(f) != 0) {
+      perror("Erreur fermeture f");
+      return -1;
+    }
+
+    printf("----Succès de l'arrêt de la fonction.----\n");
+    return 0;
   }
 
-  // On ecrit un trap a l'adresse de la fonction pour l'arreter.
-  wr = fwrite(&trap, 1, 1, f);
-  if (wr == 0) {
-    perror("Erreur write dans /mem\n");
-    return -1;
-  }
+  int main(int argc, char const *argv[]) {
 
-  if (fclose(adr) != 0) {
-    perror("Erreur fermeture adr");
-    return -1;
-  }
+    if (argc == 0) {
+      printf("Passez votre processus et la fonction a surveiller en "
+             "paramètres%s\n",
+             "");
+    }
 
-  if (fclose(adrC) != 0) {
-    perror("Erreur fermeture adrC");
-    return -1;
-  }
+    char const *str = argv[1];
+    char cmd[MAX_LEN];
+    int testAppel = snprintf(cmd, sizeof("pgrep  > proc.txt") + sizeof(str),
+                             "pgrep %s > proc.txt", str);
 
-  if (fclose(f) != 0) {
-    perror("Erreur fermeture f");
-    return -1;
-  }
+    if (testAppel < 0) {
+      perror("Erreur de la chaine str ");
+      return -1;
+    }
 
-  printf("----Succès de l'arrêt de la fonction.----\n");
-  return 0;
-}
+    int errPgrep = system(cmd);
+    errPgrep = WEXITSTATUS(errPgrep);
 
-int main(int argc, char const *argv[]) {
-  if (argc == 0) {
-    printf(
-        "Passez votre processus et la fonction a surveiller en paramètres%s\n",
-        "");
-  }
+    if (errPgrep == 1) {
+      perror("Le processus n'existe pas ");
+      return -1;
+    }
 
-  char const *str = argv[1];
-  char cmd[MAX_LEN];
-  int testAppel = snprintf(cmd, sizeof("pgrep  > proc.txt") + sizeof(str),
-                           "pgrep %s > proc.txt", str);
-  if (testAppel < 0) {
-    perror("Erreur de la chaine str ");
-    return -1;
-  }
+    int pid;
+    FILE *f = fopen("proc.txt", "r");
 
-  int errPgrep = system(cmd);
-  errPgrep = WEXITSTATUS(errPgrep);
-  if (errPgrep == 1) {
-    perror("Le processus n'existe pas ");
-    return -1;
-  }
+    if (f == NULL) {
+      perror("Erreur de fopen ");
+    }
 
-  int pid;
-  FILE *f = fopen("proc.txt", "r");
-  if (f == NULL) {
-    perror("Erreur de fopen ");
-  }
-  char numProc[MAX_LEN];
-  int sizePid = fread(numProc, 5, sizeof(char), f);
-  if (sizePid == 0) {
-    perror("Erreur de fread ");
-    return -1;
-  }
-  fclose(f);
-  pid = atoi(numProc);
+    char numProc[MAX_LEN];
+    int sizePid = fread(numProc, 5, sizeof(char), f);
 
-  if (pid == 0) {
-    perror("Erreur pid ");
-    return -1;
-  }
-  if (attach(pid) == -1) {
-    return -1;
-  }
+    if (sizePid == 0) {
+      perror("Erreur de fread ");
+      return -1;
+    }
 
-  size_t sizeFct = 0;
+    fclose(f);
+    pid = atoi(numProc);
 
-  if (modifMem(pid, argv[1], argv[2], sizeFct) == -1) {
-    return -1;
+    if (pid == 0) {
+      perror("Erreur pid ");
+      return -1;
+    }
+
+    if (attach(pid) == -1) {
+      return -1;
+    }
+
+    size_t sizeFct = 0;
+
+    if (modifMem(pid, argv[1], argv[2], sizeFct) == -1) {
+      return -1;
+    }
+
+    return 0;
   }
-
-  return 0;
-}
