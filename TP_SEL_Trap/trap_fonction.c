@@ -38,11 +38,9 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   FILE *adr;
   FILE *adrC;
   FILE *f;
-  unsigned int trap = 0xCC;
-  unsigned int call = 0xFFD0;
 
   struct user_regs_struct gRegistre;
-  char callHex[8];
+  char callHex[3] = {OxFF, OxD0, 0xCC};
   const char *fctCall = "appelMem";
 
   // On regarde la table des symboles du processus controle
@@ -148,8 +146,8 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   printf("appelMem: %lX\n", addrCall);
 
   // Creation de la ligne "call posix_memalign"
-  if (snprintf(callHex, sizeof(callHex) + 1, "%X%llX", call, gRegistre.rax) <
-      0) {
+  if (snprintf(callHex, sizeof(call) + sizeof(callHex) + 1, "%X%llX", call,
+               gRegistre.rax) < 0) {
     perror("Erreur creation de la chaine callHex \n");
     return -1;
   }
