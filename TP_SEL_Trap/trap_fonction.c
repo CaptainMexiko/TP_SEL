@@ -68,7 +68,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
     return -1;
   }
 
-  re = fread(add, 16, sizeof(char), adr);
+  re = fread(add, sizeof(char), 16, adr);
 
   if (re == 0) {
     perror("erreur lecture adresse du fichier addrTrap.txt\n");
@@ -140,6 +140,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   gRegistre.rax = addrCall;
   printf("raxSet = %llX\n", gRegistre.rax);
   gRegistre.rip = addresse;
+  printf("addresse : %lx\n", addresse);
 
   printf("appelMem: %lX\n", addrCall);
   
