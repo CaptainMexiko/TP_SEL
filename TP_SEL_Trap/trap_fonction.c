@@ -138,6 +138,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   printf("raxSet = %llX\n", gRegistre.rax);
   gRegistre.rip = addresse;
   printf("addresse : %lx\n", addresse);
+  printf("ripSet = %llX\n", gRegistre.rip);
 
   printf("appelMem: %lX\n", addrCall);
 
