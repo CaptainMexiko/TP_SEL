@@ -78,8 +78,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   // hexadecimale en Long
   addresse = strtol(add, NULL, 16);
 
-  testAppel = snprintf(prg, sizeof("/proc/") + sizeof(pid) + sizeof("/mem"),
-                       "/proc/%d/mem", pid);
+  testAppel = snprintf(prg, sizeof("/proc/") + sizeof(pid) + sizeof("/mem"),"/proc/%d/mem", pid);
 
   if (testAppel < 0) {
     perror("Erreur de la chaine /proc/pid/mem\n");
@@ -106,12 +105,8 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   // On recupere l'adresse hexadecimale de la fonction que l'on veut forcer a
   // executer a la place Pour l'instant une fonction que l'on utilise pas dans
   // le programme principale puis plus tard posix_memalign
-  if (snprintf(cmdCall,
-               sizeof("nm ") + sizeof(processus) + sizeof(" | grep \" ") +
-                   sizeof(fctCall) + sizeof("\" > addrCall.txt"),
-               "nm %s | grep \" %s\" > addrCall.txt", processus, fctCall) < 0) {
-    perror("Erreur de la chaine nm processus | grep \" fctCall\" > "
-           "addrCall.txt \n");
+  if (snprintf(cmdCall, sizeof("nm ") + sizeof(processus) + sizeof(" | grep \" ") + sizeof(fctCall) + sizeof("\" > addrCall.txt"),"nm %s | grep \" %s\" > addrCall.txt", processus, fctCall) < 0) {
+    perror("Erreur de la chaine nm processus | grep \" fctCall\" > addrCall.txt \n");
     return -1;
   }
 
@@ -152,7 +147,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   //}
 
   printf("Appel complet: %s\n", callHex);
-  wr = fwrite(callHex, 1, sizeof(callHex), f);
+  wr = fwrite(callHex, sizeof(callHex), 1, f);
 
   if (wr == 0) {
     perror("Erreur write call dans /mem\n");
@@ -189,8 +184,7 @@ int main(int argc, char const *argv[]) {
 
   char const *str = argv[1];
   char cmd[MAX_LEN];
-  int testAppel = snprintf(cmd, sizeof("pgrep  > proc.txt") + sizeof(str),
-                           "pgrep %s > proc.txt", str);
+  int testAppel = snprintf(cmd, sizeof("pgrep  > proc.txt") + sizeof(str), "pgrep %s > proc.txt", str);
 
   if (testAppel < 0) {
     perror("Erreur de la chaine str ");
