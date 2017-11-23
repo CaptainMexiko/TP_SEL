@@ -137,7 +137,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   gRegistre.rax = addrCall;
   printf("raxSet = %llX\n", gRegistre.rax);
   gRegistre.rip = addresse;
-  printf("addresse : %lx\n", addresse);
+  printf("ripSet = %llx\n", gRegistre.rip);
 
   printf("appelMem: %lX\n", addrCall);
 
@@ -174,9 +174,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 int main(int argc, char const *argv[]) {
 
   if (argc == 0) {
-    printf("Passez votre processus et la fonction a surveiller en "
-           "paramètres%s\n",
-           "");
+    printf("Passez votre processus et la fonction a surveiller en paramètres%s\n", "");
   }
 
   char const *str = argv[1];
