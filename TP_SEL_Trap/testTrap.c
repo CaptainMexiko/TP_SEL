@@ -48,7 +48,7 @@ int c9() {
 
 int appelMem(){
   printf("test\n");
-  return 0;
+  return 42;
 }
 
 int main(int argc, char const *argv[]) {
