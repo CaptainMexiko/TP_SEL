@@ -46,15 +46,9 @@ int c9() {
 	return 0;
 }
 
-<<<<<<< HEAD
 int appelMem(int n){
   printf("test%d\n", n);
   return 0;
-=======
-int appelMem(){
-  printf("test\n");
-  return 42;
->>>>>>> 28b83f99507b358ede6c4d955efa93dab6311ee4
 }
 
 int main(int argc, char const *argv[]) {
