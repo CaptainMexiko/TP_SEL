@@ -23,6 +23,7 @@ struct user_regs_struct getRegistry(int pid) {
   return regs;
 }
 
+
 ////////////////////////////////////// Fonctions Principales ///////////////////////////////////////
 
 
