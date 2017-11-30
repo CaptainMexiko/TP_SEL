@@ -92,13 +92,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   if (f == NULL) {
     perror("Erreur de fopen /mem");
   }
-  // On se place a l'adresse de la fonction a modifier
-  errSeek = fseek(f, addresse, SEEK_SET);
-
-  if (errSeek < 0) {
-    perror("Erreur fseek\n");
-    return -1;
-  }
+  
 
   // On recupere les registres du processus attache
   gRegistre = getRegistry(pid);
@@ -115,7 +109,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   errCall = WEXITSTATUS(errCall);
 
   if (errCall < 0) {
-    perror("nm n'as pas fonctionné\n");
+    perror("nm n'as pas fonctionne\n");
     return -1;
   }
 
@@ -135,25 +129,42 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   }
 
   addrCall = strtol(addCall, NULL, 16);
-
-  gRegistre.rax = addrCall;
+  
+  gRegistre.rax = addrCall;   // Fonction a remplacer
   printf("raxSet = %llX\n", gRegistre.rax);
+<<<<<<< HEAD
   gRegistre.rip = addresse;
   printf("addresse : %lx\n", addresse);
   printf("ripSet = %llX\n", gRegistre.rip);
-
-  printf("appelMem: %lX\n", addrCall);
-
-	for(int i = 0; i < 3; i++){
-	  printf("Bytes: %08x\n", callHex[i]);
+=======
+  gRegistre.rip = addresse;  // Adresse de la fonction a remplacer
+  printf("ripSet = %llx\n", gRegistre.rip);
+  
+  for(int i = 0; i < 3; i++){
+	  printf("Bytes: %x\n", callHex[i]);
 	}
-  wr = fwrite(callHex, sizeof(callHex), 1, f);
+>>>>>>> 28b83f99507b358ede6c4d955efa93dab6311ee4
 
+  // On se place a l'adresse de la fonction a modifier
+  errSeek = fseek(f, addresse, SEEK_SET);
+
+  if (errSeek < 0) {
+    perror("Erreur fseek\n");
+    return -1;
+  }
+	
+  wr = fwrite(callHex, sizeof(callHex), 1, f);
   if (wr == 0) {
     perror("Erreur write call dans /mem\n");
     return -1;
   }
-
+  
+  ptrace(PTRACE_SETREGS, pid, 0, &gRegistre);	
+  printf("appelMem: %lX\n", addrCall);
+  
+  ptrace(PTRACE_CONT, pid, NULL, NULL);
+  
+//wait(&pid);
 
   if (fclose(adr) != 0) {
     perror("Erreur fermeture adr");
