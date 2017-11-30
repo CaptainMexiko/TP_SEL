@@ -46,8 +46,8 @@ int c9() {
 	return 0;
 }
 
-int appelMem(){
-  printf("test\n");
+int appelMem(int n){
+  printf("test%d\n", n);
   return 0;
 }
 
