@@ -232,11 +232,13 @@ int main(int argc, char const *argv[]) {
     return -1;
   }
 
-  fclose(f);
+  if(fclose(f) != 0){
+    perror("Erreur fermeture fichier proc.txt");
+  }
   pid = atoi(numProc);
 
   if (pid == 0) {
-    perror("Erreur pid ");
+    perror("Erreur dans l'obtention du pid ");
     return -1;
   }
 
