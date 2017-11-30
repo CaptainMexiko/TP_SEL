@@ -1,6 +1,11 @@
 #include "trap_fonction.h"
 
+<<<<<<< HEAD
 // Fonction attach servant a s'attacher au processus a observer.
+=======
+// Fonction d'attachement au processus a observer
+// Prend en paramètre le pid du procesus cible.
+>>>>>>> 4174aa7d6e2a1ad0be7182454b85dc93694fcdc8
 int attach(int pid) {
   long erreurAttach1 = ptrace(PTRACE_ATTACH, pid, 0, 0);
   if (erreurAttach1 == -1) {
@@ -11,6 +16,7 @@ int attach(int pid) {
   return 0;
 }
 
+// getRegistry permet 
 struct user_regs_struct getRegistry(int pid) {
   struct user_regs_struct regs;
   int pgReg = ptrace(PTRACE_GETREGS, pid, 0, &regs);
