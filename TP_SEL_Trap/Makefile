@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall -Werror
+CFLAGS = -g
 SRC = trap_fonction.c
 OBJ = trap_fonction.o
 

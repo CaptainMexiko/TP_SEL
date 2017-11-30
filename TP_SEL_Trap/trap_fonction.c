@@ -23,6 +23,13 @@ struct user_regs_struct getRegistry(int pid) {
   return regs;
 }
 
+long unsigned getPMemAddress(int pid){
+  char cmdLibc[MAX_LEN];
+
+  snprintf(cmdLibc, sizeof("cat /proc/") + sizeof(pid) + sizeof("/maps | grep /lib/x86_64-linux-gnu/libc > libcAddr.txt"), "cat /proc/%d/maps | grep /lib/x86_64-linux-gnu/libc > libcAddr.txt", pid);
+
+  system(cmdLibc);
+}
 
 ////////////////////////////////////// Fonctions Principales ///////////////////////////////////////
 
@@ -108,14 +115,16 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   // On recupere les registres du processus attache
   gRegistre = getRegistry(pid);
-
+/*
   // On recupere l'adresse hexadecimale de la fonction que l'on veut forcer a
   // executer a la place Pour l'instant une fonction que l'on utilise pas dans
   // le programme principale puis plus tard posix_memalign
   if (snprintf(cmdCall, sizeof("nm ") + sizeof(processus) + sizeof(" | grep \" ") + sizeof(fctCall) + sizeof("\" > addrCall.txt"),"nm %s | grep \" %s\" > addrCall.txt", processus, fctCall) < 0) {
     perror("Erreur de la chaine nm processus | grep \" fctCall\" > addrCall.txt \n");
     return -1;
-  }
+  }*/
+
+  getPMemAddress(pid);
 
   errCall = system(cmdCall);
   errCall = WEXITSTATUS(errCall);
@@ -142,29 +151,26 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   addrCall = strtol(addCall, NULL, 16);
 
-  long int A = 523;
+  long int paramA = 523;
 
   gRegistre.rax = addrCall;   // Fonction a remplacer
   printf("raxSet = %llX\n", gRegistre.rax);
   gRegistre.rip = addresse;  // Adresse de la fonction a remplacer
   printf("ripSet = %llx\n", gRegistre.rip);
 
-  gRegistre.rdi  = A;
+  gRegistre.rdi  = paramA;
 
   for(int i = 0; i < 3; i++){
 	  printf("Bytes: %x\n", callHex[i]);
 	}
 
   // On se place a l'adresse de la fonction a modifier
-  errSeek = fseek(f, addresse, SEEK_SET);
-
-  if (errSeek < 0) {
+  if (fseek(f, addresse, SEEK_SET) < 0) {
     perror("Erreur fseek\n");
     return -1;
   }
 
-  wr = fwrite(callHex, sizeof(callHex), 1, f);
-  if (wr == 0) {
+  if(fwrite(callHex, sizeof(callHex), 1, f) == 0){
     perror("Erreur write call dans /mem\n");
     return -1;
   }
@@ -174,7 +180,6 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   ptrace(PTRACE_CONT, pid, NULL, NULL);
 
-//wait(&pid);
 
   if (fclose(adr) != 0) {
     perror("Erreur fermeture adr");
@@ -196,51 +201,42 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 }
 
 int main(int argc, char const *argv[]) {
+  int pid;
 
   if (argc == 0) {
     printf("Passez votre processus et la fonction a surveiller en paramètres%s\n", "");
   }
 
-  char const *str = argv[1];
-  char cmd[MAX_LEN];
-  int testAppel = snprintf(cmd, sizeof("pgrep  > proc.txt") + sizeof(str), "pgrep %s > proc.txt", str);
+  char const * str = argv[1]; // Le nom de la fonction a observer
 
-  if (testAppel < 0) {
+  char numProc[MAX_LEN]; // Le numero de pid du processus a observer
+
+  char pgrepPid[MAX_LEN]; //  La commande pour retrouver le pid du processus a observer
+
+  FILE * fpid;
+
+  if (snprintf(pgrepPid, sizeof("pgrep  > proc.txt") + sizeof(str), "pgrep %s > proc.txt", str) < 0) {
     perror("Erreur de la chaine str ");
     return -1;
   }
 
-  int errPgrep = system(cmd);
-  errPgrep = WEXITSTATUS(errPgrep);
-
-  if (errPgrep == 1) {
+  if (WEXITSTATUS(system(pgrepPid)) == 1) {
     perror("Le processus n'existe pas ");
     return -1;
   }
 
-  int pid;
-  FILE *f = fopen("proc.txt", "r");
+  fpid = fopen("proc.txt", "r");
 
-  if (f == NULL) {
+  if (fpid == NULL) {
     perror("Erreur de fopen ");
   }
 
-  char numProc[MAX_LEN];
-  int sizePid = fread(numProc, 5, sizeof(char), f);
 
-  if (sizePid == 0) {
-    perror("Erreur de fread ");
-    return -1;
-  }
+  fscanf(fpid, "%d", &pid);
 
-  if(fclose(f) != 0){
+
+  if(fclose(fpid) != 0){
     perror("Erreur fermeture fichier proc.txt");
-  }
-  pid = atoi(numProc);
-
-  if (pid == 0) {
-    perror("Erreur dans l'obtention du pid ");
-    return -1;
   }
 
   if (attach(pid) == -1) {
