@@ -1,11 +1,7 @@
 #include "trap_fonction.h"
 
-<<<<<<< HEAD
-// Fonction attach servant a s'attacher au processus a observer.
-=======
 // Fonction d'attachement au processus a observer
 // Prend en paramètre le pid du procesus cible.
->>>>>>> 4174aa7d6e2a1ad0be7182454b85dc93694fcdc8
 int attach(int pid) {
   long erreurAttach1 = ptrace(PTRACE_ATTACH, pid, 0, 0);
   if (erreurAttach1 == -1) {
@@ -16,7 +12,7 @@ int attach(int pid) {
   return 0;
 }
 
-// getRegistry permet 
+// getRegistry permet d'obtenir les registres du processus observe.
 struct user_regs_struct getRegistry(int pid) {
   struct user_regs_struct regs;
   int pgReg = ptrace(PTRACE_GETREGS, pid, 0, &regs);
@@ -27,6 +23,12 @@ struct user_regs_struct getRegistry(int pid) {
   return regs;
 }
 
+////////////////////////////////////// Fonctions Principales ///////////////////////////////////////
+
+
+// Permet de remplacer le code binaire d'une fonction par l'appel a posix_memalign
+// pid est le pid du processus a observer, *fct est le nom de la fonction que l'on veut remplacer
+// sizeFct est la taille de la fonction que l'on veut mettre a la place.
 int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   char prg[MAX_LEN];
   char cmd[MAX_LEN];
@@ -47,6 +49,8 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   FILE *f;
 
   struct user_regs_struct gRegistre;
+
+  // Representation hexadecimale de l'appel call indirecte suivit du code trap (0xCC)
   char callHex[3] = {0xFF, 0xD0, 0xCC};
   const char *fctCall = "appelMem";
 
@@ -137,10 +141,14 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   addrCall = strtol(addCall, NULL, 16);
 
+  long int A = 523;
+
   gRegistre.rax = addrCall;   // Fonction a remplacer
   printf("raxSet = %llX\n", gRegistre.rax);
   gRegistre.rip = addresse;  // Adresse de la fonction a remplacer
   printf("ripSet = %llx\n", gRegistre.rip);
+
+  gRegistre.rdi  = A;
 
   for(int i = 0; i < 3; i++){
 	  printf("Bytes: %x\n", callHex[i]);
