@@ -1,5 +1,7 @@
 #include "trap_fonction.h"
 
+// Fonction d'attachement au processus a observer
+// Prend en paramètre le pid du procesus cible.
 int attach(int pid) {
   long erreurAttach1 = ptrace(PTRACE_ATTACH, pid, 0, 0);
   if (erreurAttach1 == -1) {
@@ -10,6 +12,7 @@ int attach(int pid) {
   return 0;
 }
 
+// getRegistry permet 
 struct user_regs_struct getRegistry(int pid) {
   struct user_regs_struct regs;
   int pgReg = ptrace(PTRACE_GETREGS, pid, 0, &regs);
@@ -92,7 +95,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   if (f == NULL) {
     perror("Erreur de fopen /mem");
   }
-  
+
 
   // On recupere les registres du processus attache
   gRegistre = getRegistry(pid);
@@ -129,21 +132,15 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   }
 
   addrCall = strtol(addCall, NULL, 16);
-  
+
   gRegistre.rax = addrCall;   // Fonction a remplacer
   printf("raxSet = %llX\n", gRegistre.rax);
-<<<<<<< HEAD
-  gRegistre.rip = addresse;
-  printf("addresse : %lx\n", addresse);
-  printf("ripSet = %llX\n", gRegistre.rip);
-=======
   gRegistre.rip = addresse;  // Adresse de la fonction a remplacer
   printf("ripSet = %llx\n", gRegistre.rip);
-  
+
   for(int i = 0; i < 3; i++){
 	  printf("Bytes: %x\n", callHex[i]);
 	}
->>>>>>> 28b83f99507b358ede6c4d955efa93dab6311ee4
 
   // On se place a l'adresse de la fonction a modifier
   errSeek = fseek(f, addresse, SEEK_SET);
@@ -152,18 +149,18 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
     perror("Erreur fseek\n");
     return -1;
   }
-	
+
   wr = fwrite(callHex, sizeof(callHex), 1, f);
   if (wr == 0) {
     perror("Erreur write call dans /mem\n");
     return -1;
   }
-  
-  ptrace(PTRACE_SETREGS, pid, 0, &gRegistre);	
+
+  ptrace(PTRACE_SETREGS, pid, 0, &gRegistre);
   printf("appelMem: %lX\n", addrCall);
-  
+
   ptrace(PTRACE_CONT, pid, NULL, NULL);
-  
+
 //wait(&pid);
 
   if (fclose(adr) != 0) {
