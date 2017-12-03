@@ -45,36 +45,25 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
   char addCall[MAX_LEN];
   long addresse;
   long addrCall;
-  int testAppel;
-  int errPgrep;
-  int errCall;
-  int re;
   int reC;
   int wr;
   int errSeek;
   FILE *adr;
   FILE *adrC;
   FILE *f;
-
   struct user_regs_struct gRegistre;
 
   // Representation hexadecimale de l'appel call indirecte suivit du code trap (0xCC)
   char callHex[3] = {0xFF, 0xD0, 0xCC};
-  const char *fctCall = "appelMem";
+  const char * fctCall = "appelMem";
 
   // On regarde la table des symboles du processus controle
-  if (snprintf(cmd,
-               sizeof("nm ") + sizeof(processus) + sizeof(" | grep \" ") +
-                   sizeof(fct) + sizeof("\" > addrTrap.txt"),
-               "nm %s | grep \" %s\" > addrTrap.txt", processus, fct) < 0) {
+  if (snprintf(cmd, sizeof("nm ") + sizeof(processus) + sizeof(" | grep \" ") + sizeof(fct) + sizeof("\" > addrTrap.txt"), "nm %s | grep \" %s\" > addrTrap.txt", processus, fct) < 0) {
     perror("Erreur de la chaine nm processsus | grep \" fct\" > addrTrap.txt");
     return -1;
   }
 
-  errPgrep = system(cmd);
-  errPgrep = WEXITSTATUS(errPgrep);
-
-  if (errPgrep < 0) {
+  if (WEXITSTATUS(system(cmd)) < 0) {
     perror("nm n'as pas fonctionné\n");
     return -1;
   }
@@ -87,20 +76,17 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
     return -1;
   }
 
-  re = fread(add, sizeof(char), 16, adr);
-  add[16] = 0;
-
-  if (re == 0) {
+  if (fread(add, sizeof(char), 16, adr) == 0) {
     perror("erreur lecture adresse du fichier addrTrap.txt\n");
     return -1;
   }
+  add[16] = 0;
+
   // On convertit les 16 charactere de la chaine correspondant à l'adresse
   // hexadecimale en Long
   addresse = strtol(add, NULL, 16);
 
-  testAppel = snprintf(prg, sizeof("/proc/") + sizeof(pid) + sizeof("/mem"),"/proc/%d/mem", pid);
-
-  if (testAppel < 0) {
+  if (snprintf(prg, sizeof("/proc/") + sizeof(pid) + sizeof("/mem"),"/proc/%d/mem", pid) < 0) {
     perror("Erreur de la chaine /proc/pid/mem\n");
     return -1;
   }
@@ -126,10 +112,7 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
 
   getPMemAddress(pid);
 
-  errCall = system(cmdCall);
-  errCall = WEXITSTATUS(errCall);
-
-  if (errCall < 0) {
+  if (WEXITSTATUS(system(cmdCall)) < 0) {
     perror("nm n'as pas fonctionne\n");
     return -1;
   }
@@ -141,13 +124,11 @@ int modifMem(int pid, const char *processus, const char *fct, size_t sizeFct) {
     return -1;
   }
 
-  reC = fread(addCall, sizeof(char), 16, adrC);
-  addCall[16] = 0;
-
-  if (reC == 0) {
+  if (fread(addCall, sizeof(char), 16, adrC) == 0) {
     perror("erreur lecture adresse du fichier addrCall.txt\n");
     return -1;
   }
+  addCall[16] = 0;
 
   addrCall = strtol(addCall, NULL, 16);
 
